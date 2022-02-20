@@ -6,6 +6,14 @@
   "engines": {
     "vscode": "^1.64.0"
   },
+  "repository": {
+    "url": "https://github.com/bigbug/vscode-language-jsonata"
+  },
+  "author": {
+    "name": "@bigbug",
+    "url": "https://github.com/bigbug"
+  },
+  "publisher": "bigbug",
   "categories": [
     "Other"
   ],
