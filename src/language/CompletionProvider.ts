@@ -1,5 +1,5 @@
 import { uniq } from "lodash";
-import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, Position, Range, SnippetString, TextDocument } from "vscode";
+import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, NotebookCell, Position, Range, SnippetString, TextDocument } from "vscode";
 import functions from "./functions";
 
 export default class CompletionProvider implements CompletionItemProvider{
@@ -25,7 +25,12 @@ export default class CompletionProvider implements CompletionItemProvider{
             {
                 regex: /\$$/,
                 func: (a: any) => {
-                    let matches = [...document.getText().matchAll(/\$(\w+)\s*:= (function\(|λ\()?/g)];
+                    let text = document.getText();
+                    if((document as any).notebook) {
+                        const cells : NotebookCell[] = (document as any).notebook.getCells();
+                        text = cells.map(cell => cell.document.getText()).join(";\n");
+                    }
+                    let matches = [...text.matchAll(/\$(\w+)\s*:=\s*(function\s*\(|λ\s*\()?/g)];
 
                     let functionMatches = uniq(matches.filter(i=>i[2]).map(i=>i[1]));
                     let varMatches = uniq(matches.filter(i=>!i[2]).map(i=>i[1]));

@@ -28,6 +28,10 @@ Lack of errors if file loading fails.
 
 ## Release Notes
 
+## 0.2.0
+
+- Enable web extension (currently only syntax highlighting works - there is no renderer for the JSON output)
+- Code Completion for defined functions and vars
 
 ### 0.1.0
 

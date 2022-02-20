@@ -14,7 +14,7 @@ declare class TextEncoder {
 	encode(data: string): Uint8Array;
 }
 
-export class NotebookKernel {
+export class NotebookKernel implements vscode.Disposable {
     readonly id = 'jsonata-book-kernel';
     readonly notebookType = 'jsonata-book';
     readonly label = 'JSONata Book';
@@ -40,6 +40,12 @@ export class NotebookKernel {
 	dispose(): void {
 		this._controller.dispose();
 	}
+
+    public async restartKernel() {
+        await vscode.commands.executeCommand('notebook.clearAllCellsOutputs');
+        this._data = undefined;
+        this._bindings = {};
+    }
 
     private _executeAll(cells: vscode.NotebookCell[], _notebook: vscode.NotebookDocument, _controller: vscode.NotebookController): void {
         for (let cell of cells) {
