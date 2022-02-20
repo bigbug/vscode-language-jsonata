@@ -1,0 +1,34 @@
+{
+    "scopeName": "source.jsonata",
+    "foldingStartMarker": "\\{\\s*$",
+    "foldingStopMarker": "^\\s*\\}",
+    "patterns": [
+        {"include": "#comment"},
+        {"include": "#string"},
+        {"include": "#string2"},
+        {"include": "#variable"},
+        {"include": "#names"}
+    ],
+    "repository": {
+        "comment": {
+            "name": "comment.line",
+            "match": "\/\\*.*\\*\/"
+        },
+        "string": {
+            "name": "string.quoted",
+            "match": "'.*'"
+        },
+        "string2": {
+            "name": "string.quoted.double",
+            "match": "\".*\""
+        },
+        "variable": {
+            "name": "variable.parameter",
+            "match": "\\$[a-zA-Z0-9_]*"
+        },
+        "names": {
+            "name": "variable.parameter",
+            "match": "[a-zA-Z0-9_]+"
+        }
+    }
+  }
