@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 var stringify = require('json-stringify-safe');
 var jsonata = require("jsonata");
 import {Utils} from "vscode-uri";
+import loadJSON from './loader/json';
+import loadXML from './loader/xml';
 
 //const MIME_TYPE = "x-application/jsonata";
 
@@ -64,46 +66,59 @@ export class NotebookKernel implements vscode.Disposable {
 
         let counter = 0;
 
-        const loadFile = async (filename: string) => {
+        const loadFile = async (filename: string, type?: string) => {
             counter++;
             if(!vscode.workspace.workspaceFolders) {return;}
             const folderUri = vscode.workspace.workspaceFolders[0].uri;
             const fileUri = Utils.joinPath(folderUri, filename);
-            try {
-                const file = await vscode.workspace.fs.readFile(fileUri);
-                const string = new TextDecoder().decode(file);
-                const res = JSON.parse(string);
-                that._data = res;
-                that._bindings['ans'] = res;
-                execution.replaceOutput([new vscode.NotebookCellOutput([
-                    vscode.NotebookCellOutputItem.json(res)
-                ])]);
-                counter--;
-                if(counter===0) {
-                    execution.end(true, Date.now());
-                }
-                return res;
-            } catch(e) {
-                execution.replaceOutput(
-                    new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.error({
-                            name: e instanceof Error && e.name || 'error', 
-                            message: e instanceof Error && e.message || stringify(e, undefined, 4)
-                        })
-                    ])
-                );
-                counter--;
-                if(counter===0) {
-                    execution.end(false, Date.now());
-                }
-            }
+
+            new Promise((resolve, reject) => {
+                vscode.workspace.fs.readFile(fileUri)
+                .then((data) => {
+                    const string = new TextDecoder().decode(data);
+                    return Promise.resolve(string);
+                })
+                .then((data) => {
+                    if(!type || type==="json") {
+                        return loadJSON(data);
+                    } else if(type==="xml") {
+                        return loadXML(data);
+                    } else {
+                        return Promise.reject("unknown file handler!");
+                    }
+                }).then((res) => {
+                    that._data = res;
+                    that._bindings['ans'] = res;
+                    execution.replaceOutput([new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.json(res)
+                    ])]);
+                    counter--;
+                    if(counter===0) {
+                        execution.end(true, Date.now());
+                    }
+                    return res;
+                }, (e) => {
+                    execution.replaceOutput(
+                        new vscode.NotebookCellOutput([
+                            vscode.NotebookCellOutputItem.error({
+                                name: e instanceof Error && e.name || 'error', 
+                                message: e instanceof Error && e.message || stringify(e, undefined, 4)
+                            })
+                        ])
+                    );
+                    counter--;
+                    if(counter===0) {
+                        execution.end(false, Date.now());
+                    }
+                });
+            });
         };
 
         const query = cell.document.getText();
         try {
             const data = this._data;
             const jsonataObject = jsonata(query);
-            jsonataObject.registerFunction("loadFile", loadFile, "<s:s>");
+            jsonataObject.registerFunction("loadFile", loadFile, "<ss?:s>");
 
             const result = jsonataObject.evaluate(data, this._bindings);
 

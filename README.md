@@ -8,6 +8,8 @@ This extension enables JSONata language support to Visual Studio Code. The exten
 
 We also support JSONata Notebooks. They are automatically activated for files with the *.jsonata-book extension. Within notebooks data can be loaded with `$loadFile("path/to/file.json")` (Attention! `$loadFile()<s:o>` is an async function and therefore returns `undefined`!). The source file for the data has to be a JSON file (probably will be extended in the future). The files will be loaded from the root folder of the first workspace.
 
+`$loadFile($file[, $type])` takes up to two arguments. `$file` represents the filename to be loaded. With the optional argument `$type` one can specify how this file should be loaded. At the moment only json and xml can be chosen whereas json is the standard if `$type` is missing.
+
 Each code cell of the notebook can access the result of the most recent executed cell by using `$ans`.
 
 A good documentation for the JSONata language can be found [here](https://docs.jsonata.org/overview.html).
@@ -27,6 +29,10 @@ None
 `$loadFile()` is an async function and therefore returns `undefined`
 
 ## Release Notes
+
+## 0.3.0
+
+- Support importing XML files in `$loadFile()<ss?:o>`
 
 ## 0.2.1
 

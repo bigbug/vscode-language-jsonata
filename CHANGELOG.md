@@ -6,6 +6,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.3.0]
+
+- Support importing XML files in `$loadFile()`
 ## [0.2.1]
 
 - Better error handling for loading files with `$loadFile()`
