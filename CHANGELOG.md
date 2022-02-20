@@ -6,6 +6,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.2.1]
+
+- Better error handling for loading files with `$loadFile()`
 ## [0.2.0]
 
 - Enable web extension (currently only syntax highlighting works - there is no renderer for the JSON output)

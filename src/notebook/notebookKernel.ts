@@ -27,9 +27,11 @@ export class NotebookKernel implements vscode.Disposable {
     private _bindings : {[name:string] : unknown} = {};
 
 	constructor() {
-        this._controller = vscode.notebooks.createNotebookController(this.id, 
-                                                                    this.notebookType, 
-                                                                    this.label);
+        this._controller = vscode.notebooks.createNotebookController(
+            this.id, 
+            this.notebookType, 
+            this.label
+        );
 
 		this._controller.supportedLanguages = this.supportedLanguages;
 		this._controller.supportsExecutionOrder = true;
@@ -60,16 +62,41 @@ export class NotebookKernel implements vscode.Disposable {
 
         const that = this;
 
+        let counter = 0;
+
         const loadFile = async (filename: string) => {
+            counter++;
             if(!vscode.workspace.workspaceFolders) {return;}
             const folderUri = vscode.workspace.workspaceFolders[0].uri;
             const fileUri = Utils.joinPath(folderUri, filename);
-            const file = await vscode.workspace.fs.readFile(fileUri);
-            const string = new TextDecoder().decode(file);
-            const res = JSON.parse(string);
-            that._data = res;
-            that._bindings['ans'] = res;
-            return res;
+            try {
+                const file = await vscode.workspace.fs.readFile(fileUri);
+                const string = new TextDecoder().decode(file);
+                const res = JSON.parse(string);
+                that._data = res;
+                that._bindings['ans'] = res;
+                execution.replaceOutput([new vscode.NotebookCellOutput([
+                    vscode.NotebookCellOutputItem.json(res)
+                ])]);
+                counter--;
+                if(counter===0) {
+                    execution.end(true, Date.now());
+                }
+                return res;
+            } catch(e) {
+                execution.replaceOutput(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.error({
+                            name: e instanceof Error && e.name || 'error', 
+                            message: e instanceof Error && e.message || stringify(e, undefined, 4)
+                        })
+                    ])
+                );
+                counter--;
+                if(counter===0) {
+                    execution.end(false, Date.now());
+                }
+            }
         };
 
         const query = cell.document.getText();
@@ -91,7 +118,9 @@ export class NotebookKernel implements vscode.Disposable {
                 vscode.NotebookCellOutputItem.json(result)
             ])]);
 
-            execution.end(true, Date.now());
+            if(counter === 0) {
+                execution.end(true, Date.now());
+            }
         } catch (e) {
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
@@ -100,7 +129,9 @@ export class NotebookKernel implements vscode.Disposable {
                         message: e instanceof Error && e.message || stringify(e, undefined, 4)})
                 ])
             ]);
-            execution.end(false, Date.now());
+            if(counter === 0) {
+                execution.end(false, Date.now());
+            }
         }
         
     }
