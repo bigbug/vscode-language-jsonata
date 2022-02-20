@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Enable web extension (currently only syntax highlighting works - there is no renderer for the JSON output)
+- Code Completion for functions and vars in the normal editor (in notebooks only the predefined functions work)
 ## [0.1.1]
 
 - Add test file

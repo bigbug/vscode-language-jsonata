@@ -73,18 +73,20 @@
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "@vscode/test-electron": "^1.6.2",
+    "@vscode/test-web": "*",
     "eslint": "^7.32.0",
     "glob": "^7.1.7",
     "mocha": "^9.1.1",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.3",
-    "@vscode/test-web": "*",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.178",
     "json-stringify-safe": "^5.0.1",
     "jsonata": "^1.8.6",
+    "lodash": "^4.17.21",
     "vscode-uri": "^3.0.3"
   }
 }
