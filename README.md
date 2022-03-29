@@ -30,6 +30,9 @@ None
 
 ## Release Notes
 
+## 0.3.1
+- Fix issue where VS Code does not recognize the mime type `application/json` as notebook renderer anymore
+
 ## 0.3.0
 
 - Support importing XML files in `$loadFile()<ss?:o>`

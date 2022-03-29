@@ -90,7 +90,7 @@ export class NotebookKernel implements vscode.Disposable {
                     that._data = res;
                     that._bindings['ans'] = res;
                     execution.replaceOutput([new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.json(res)
+                        vscode.NotebookCellOutputItem.json(res, "text/x-json")
                     ])]);
                     counter--;
                     if(counter===0) {
@@ -130,7 +130,7 @@ export class NotebookKernel implements vscode.Disposable {
             this._bindings['ans'] = result;
             
             execution.replaceOutput([new vscode.NotebookCellOutput([
-                vscode.NotebookCellOutputItem.json(result)
+                vscode.NotebookCellOutputItem.json(result, "text/x-json")
             ])]);
 
             if(counter === 0) {
