@@ -64,15 +64,12 @@ export class NotebookKernel implements vscode.Disposable {
 
         const that = this;
 
-        let counter = 0;
-
-        const loadFile = async (filename: string, type?: string) => {
-            counter++;
-            if(!vscode.workspace.workspaceFolders) {return;}
+        const loadFile = (filename: string, type?: string) => {
+            if(!vscode.workspace.workspaceFolders) {return Promise.reject();}
             const folderUri = vscode.workspace.workspaceFolders[0].uri;
             const fileUri = Utils.joinPath(folderUri, filename);
 
-            new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 vscode.workspace.fs.readFile(fileUri)
                 .then((data) => {
                     const string = new TextDecoder().decode(data);
@@ -92,11 +89,10 @@ export class NotebookKernel implements vscode.Disposable {
                     execution.replaceOutput([new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.json(res, "text/x-json")
                     ])]);
-                    counter--;
-                    if(counter===0) {
-                        execution.end(true, Date.now());
-                    }
-                    return res;
+                    execution.end(true, Date.now());
+                    console.log("execution done:");
+                    console.log(res);
+                    return Promise.resolve(res);
                 }, (e) => {
                     execution.replaceOutput(
                         new vscode.NotebookCellOutput([
@@ -106,10 +102,7 @@ export class NotebookKernel implements vscode.Disposable {
                             })
                         ])
                     );
-                    counter--;
-                    if(counter===0) {
-                        execution.end(false, Date.now());
-                    }
+                    execution.end(false, Date.now());
                 });
             });
         };
@@ -118,9 +111,9 @@ export class NotebookKernel implements vscode.Disposable {
         try {
             const data = this._data;
             const jsonataObject = jsonata(query);
-            jsonataObject.registerFunction("loadFile", loadFile, "<ss?:s>");
+            jsonataObject.registerFunction("loadFile", loadFile, "<ss?:o>");
 
-            const result = jsonataObject.evaluate(data, this._bindings);
+            const result = await jsonataObject.evaluate(data, this._bindings);
 
             const match = query.trim().match(/^\$(\w+)\s*:=/);
             if(match) {
@@ -133,9 +126,7 @@ export class NotebookKernel implements vscode.Disposable {
                 vscode.NotebookCellOutputItem.json(result, "text/x-json")
             ])]);
 
-            if(counter === 0) {
-                execution.end(true, Date.now());
-            }
+            execution.end(true, Date.now());
         } catch (e) {
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
@@ -144,10 +135,7 @@ export class NotebookKernel implements vscode.Disposable {
                         message: e instanceof Error && e.message || stringify(e, undefined, 4)})
                 ])
             ]);
-            if(counter === 0) {
-                execution.end(false, Date.now());
-            }
+            execution.end(false, Date.now());
         }
-        
     }
 }

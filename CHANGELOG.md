@@ -6,6 +6,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.4.0]
+- Update JSONata to version 2.0.2
+
 ## [0.3.1]
 - Fix issue where VS Code does not recognize the mime type `application/json` as notebook renderer anymore
 
