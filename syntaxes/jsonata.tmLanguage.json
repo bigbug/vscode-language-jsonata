@@ -11,8 +11,9 @@
     ],
     "repository": {
         "comment": {
-            "name": "comment.line",
-            "match": "\/\\*.*\\*\/"
+            "name": "comment.block",
+            "begin": "\/\\*",
+            "end": "\\*\/"
         },
         "string": {
             "name": "string.quoted",
@@ -31,4 +32,4 @@
             "match": "[a-zA-Z0-9_]+"
         }
     }
-  }
+}
