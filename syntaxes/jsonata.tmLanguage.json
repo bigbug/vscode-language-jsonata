@@ -1,34 +1,74 @@
 {
-    "scopeName": "source.jsonata",
-    "foldingStartMarker": "\\{\\s*$",
-    "foldingStopMarker": "^\\s*\\}",
-    "patterns": [
-        {"include": "#comment"},
-        {"include": "#string"},
-        {"include": "#string2"},
-        {"include": "#variable"},
-        {"include": "#names"}
-    ],
-    "repository": {
-        "comment": {
-            "name": "comment.line",
-            "match": "\/\\*.*\\*\/"
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "source.jsonata",
+  "foldingStartMarker": "\\{\\s*$",
+  "foldingStopMarker": "^\\s*\\}",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#string2"
+    },
+    {
+      "include": "#variable"
+    },
+    {
+      "include": "#names"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "begin": "/\\*\\*(?!/)",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.json"
+            }
+          },
+          "end": "\\*/",
+          "name": "comment.block.documentation.json"
         },
-        "string": {
-            "name": "string.quoted",
-            "match": "'.*'"
+        {
+          "begin": "/\\*",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.json"
+            }
+          },
+          "end": "\\*/",
+          "name": "comment.block.json"
         },
-        "string2": {
-            "name": "string.quoted.double",
-            "match": "\".*\""
-        },
-        "variable": {
-            "name": "variable.parameter",
-            "match": "\\$[a-zA-Z0-9_]*"
-        },
-        "names": {
-            "name": "variable.parameter",
-            "match": "[a-zA-Z0-9_]+"
+        {
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.json"
+            }
+          },
+          "match": "(//).*$\\n?",
+          "name": "comment.line.double-slash.js"
         }
+      ]
+    },
+    "string": {
+      "name": "string.quoted",
+      "match": "'.*'"
+    },
+    "string2": {
+      "name": "string.quoted.double",
+      "match": "\"(?:\\\"|[^\"])*\""
+    },
+    "variable": {
+      "name": "variable.parameter",
+      "match": "\\$[a-zA-Z0-9_]*"
+    },
+    "names": {
+      "name": "variable.parameter",
+      "match": "[a-zA-Z0-9_]+"
     }
   }
+}

@@ -5,6 +5,7 @@ All notable changes to the "vscode-language-jsonata" extension will be documente
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
+- Support block comments
 
 ## [0.4.0]
 - Update JSONata to version 2.0.2
