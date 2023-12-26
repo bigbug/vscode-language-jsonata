@@ -11,9 +11,6 @@
       "include": "#string"
     },
     {
-      "include": "#string2"
-    },
-    {
       "include": "#variable"
     },
     {
@@ -55,12 +52,36 @@
       ]
     },
     "string": {
-      "name": "string.quoted",
-      "match": "'.*'"
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.json"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.json"
+        }
+      },
+      "name": "string.quoted.double.json",
+      "patterns": [
+        {
+          "include": "#stringcontent"
+        }
+      ]
     },
-    "string2": {
-      "name": "string.quoted.double",
-      "match": "\"(?:\\\"|[^\"])*\""
+    "stringcontent": {
+      "patterns": [
+        {
+          "match": "(?x)                # turn on extended mode\n  \\\\                # a literal backslash\n  (?:               # ...followed by...\n    [\"\\\\/bfnrt]     # one of these characters\n    |               # ...or...\n    u               # a u\n    [0-9a-fA-F]{4}) # and four hex digits",
+          "name": "constant.character.escape.json"
+        },
+        {
+          "match": "\\\\.",
+          "name": "invalid.illegal.unrecognized-string-escape.json"
+        }
+      ]
     },
     "variable": {
       "name": "variable.parameter",
