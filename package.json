@@ -2,7 +2,7 @@
   "name": "vscode-language-jsonata",
   "displayName": "VSCode Language JSONata",
   "description": "Language support for JSONata",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.64.0"
   },
@@ -85,9 +85,10 @@
   "dependencies": {
     "@types/lodash": "^4.14.178",
     "json-stringify-safe": "^5.0.1",
-    "jsonata": "^2.0.2",
+    "jsonata": "^2.0.3",
     "lodash": "^4.17.21",
+    "node-fetch": "^3.3.2",
     "vscode-uri": "^3.0.3",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.6.2"
   }
 }

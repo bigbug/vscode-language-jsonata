@@ -5,7 +5,20 @@ All notable changes to the "vscode-language-jsonata" extension will be documente
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
+
+## [1.0.0]
 - Support block comments (#2)
+- Update JSONata to 2.0.3
+- Fix parsing string quotes (#5)
+- Change of evaluation behavior (Promises are evaluated during JSONata evaluation)
+- Implement new functions:
+    - $parseString()
+    - $loadUrl()
+    - $readFile()
+    - $readUrl()
+    - $eval()
+    - $import()
+    - $writeFile()
 
 ## [0.4.0]
 - Update JSONata to version 2.0.2
