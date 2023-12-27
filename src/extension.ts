@@ -5,6 +5,7 @@ import CompletionProvider from './language/CompletionProvider';
 import NotebookKernel from './notebook/notebookKernel';
 import NotebookSerializer from './notebook/notebookSerializer';
 import subscribeToDocumentChanges from './language/diagnostics';
+import JSONataDocumentFormatter from './language/formatter';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -28,6 +29,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(jsonataDiagnostics);
 
   subscribeToDocumentChanges(context, jsonataDiagnostics);
+  context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(
+    ['jsonata'],
+    new JSONataDocumentFormatter(),
+  ));
 }
 
 // this method is called when your extension is deactivated
