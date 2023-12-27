@@ -5,7 +5,7 @@ All notable changes to the "vscode-language-jsonata" extension will be documente
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
-- Support Error Diagnostics in JSONata files
+- Support Error Diagnostics in JSONata files and notebooks
 
 ## [1.0.0]
 - Support block comments (#2)

@@ -66,6 +66,14 @@ export default function subscribeToDocumentChanges(
     ),
   );
 
+  vscode.workspace.onDidChangeNotebookDocument(
+    (e) => {
+      e.notebook.getCells().forEach((cell) => {
+        refreshDiagnostics(cell.document, jsonataDiagnostics);
+      });
+    },
+  );
+
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument(
       (doc) => jsonataDiagnostics.delete(doc.uri),
