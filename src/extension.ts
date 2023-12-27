@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import CompletionProvider from './language/CompletionProvider';
 import NotebookKernel from './notebook/notebookKernel';
 import NotebookSerializer from './notebook/notebookSerializer';
+import subscribeToDocumentChanges from './language/diagnostics';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -22,6 +23,11 @@ export function activate(context: vscode.ExtensionContext) {
     new CompletionProvider(),
     '$',
   ));
+
+  const jsonataDiagnostics = vscode.languages.createDiagnosticCollection('jsonata');
+  context.subscriptions.push(jsonataDiagnostics);
+
+  subscribeToDocumentChanges(context, jsonataDiagnostics);
 }
 
 // this method is called when your extension is deactivated
