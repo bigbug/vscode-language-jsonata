@@ -17,6 +17,7 @@ export default class JSONataKernel {
   (...args: any[]) => Promise<unknown> {
     return (...args: any[]) => func(...args).then((res: unknown) => {
       this.data = res;
+      return res;
     });
   }
 

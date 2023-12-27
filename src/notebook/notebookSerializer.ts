@@ -60,7 +60,7 @@ export default class NotebookSerializer implements vscode.NotebookSerializer {
       item.language,
     ));
 
-    for (let i = 0; i < cells.length; i++) {
+    for (let i = 0; i < cells.length; i += 1) {
       const cell = cells[i];
       cell.outputs = [];
       if (raw[i].outputs) {
