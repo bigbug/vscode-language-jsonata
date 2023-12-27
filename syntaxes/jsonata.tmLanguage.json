@@ -198,6 +198,9 @@
     "value": {
       "patterns": [
         {
+          "include": "#comments"
+        },
+        {
           "include": "#constant"
         },
         {
@@ -214,9 +217,6 @@
         },
         {
           "include": "#expression"
-        },
-        {
-          "include": "#comments"
         }
       ]
     }
