@@ -3,6 +3,9 @@ import jsonata = require('jsonata');
 import {
   DocumentFormattingEditProvider, Position, ProviderResult, Range, TextDocument, TextEdit, window,
 } from 'vscode';
+// @ts-ignore
+import parser = require('./parser');
+import populateMessage from './errors';
 
 class Formatter {
   private indent = 0;
@@ -12,7 +15,7 @@ class Formatter {
   private formattedCode: string = '';
 
   constructor(code: string) {
-    const obj = jsonata(code).ast();
+    const obj = parser(code);
     this.evaluate(obj);
 
     if (this.strip(code) !== this.strip(this.formattedCode)) {
@@ -69,6 +72,8 @@ class Formatter {
       this.evaluateRegex(obj);
     } else if (obj.type === 'filter') {
       this.evaluateFilter(obj);
+    } else if (obj.type === 'comment') {
+      this.evaluateComment(obj);
     } else {
       this.rest(obj);
     }
@@ -286,6 +291,12 @@ class Formatter {
     this.p(value);
   }
 
+  private evaluateComment(obj: jsonata.ExprNode) {
+    this.p(`/*${obj.value}*/\n`);
+    // @ts-ignore
+    this.evaluate(obj.expression);
+  }
+
   public code() {
     return this.formattedCode;
   }
@@ -313,7 +324,12 @@ export default class JSONataDocumentFormatter implements DocumentFormattingEditP
       ));
       return edit;
     } catch (e: any) {
-      console.log(e);
+      if (e.code) {
+        const err = populateMessage(e);
+        // @ts-ignore
+        window.showErrorMessage(`${err.code}: ${err.message}`);
+        return undefined;
+      }
       // (parser error) don't bubble up as a pot. unhandled thenable promise;
       // explicitly return "no change" instead.
       // show error message

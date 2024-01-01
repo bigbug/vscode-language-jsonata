@@ -145,10 +145,10 @@ const parser = (() => {
         const commentStart = position;
         position += 2;
         currentChar = path.charAt(position);
-        let comment = currentChar;
+        let comment = '';
         while (!(currentChar === '*' && path.charAt(position + 1) === '/')) {
-          currentChar = path.charAt(++position);
           comment += currentChar;
+          currentChar = path.charAt(++position);
           if (position >= length) {
             // no closing tag
             throw {
@@ -667,7 +667,6 @@ const parser = (() => {
 
     // comments
     prefix('/*', function () {
-      console.log('prefix!');
       // advance('*/');
       const expr = expression(0);
       this.type = 'comment';
@@ -1320,6 +1319,10 @@ const parser = (() => {
         case 'variable':
         case 'regex':
           result = expr;
+          break;
+        case 'comment':
+          result = expr;
+          result.expression = processAST(result.expression);
           break;
         case 'operator':
           // the tokens 'and' and 'or' might have been used as a name rather than an operator
