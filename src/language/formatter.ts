@@ -71,7 +71,7 @@ class Formatter {
       this.evaluateBind(obj);
     } else if (obj.type === 'condition') {
       this.evaluateCondition(obj);
-    } else if (obj.type === 'function') {
+    } else if (obj.type === 'function' || obj.type === 'partial') {
       this.evaluateFunction(obj);
     } else if (obj.type === 'regex') {
       this.evaluateRegex(obj);
@@ -79,6 +79,8 @@ class Formatter {
       this.evaluateFilter(obj);
     } else if (obj.type === 'comment') {
       this.evaluateComment(obj);
+    } else if (obj.type === 'operator') {
+      this.p(obj.value);
     } else {
       this.rest(obj);
     }

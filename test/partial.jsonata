@@ -1,0 +1,6 @@
+  /* JSONata is not known for its graphics support! */
+  $plot := function($x) {(
+    $floor := $string ~> $substringBefore(?, '.') ~> $number;
+    $index := $floor(($x + 1) * 20 + 0.5);
+    $join([0..$index].('.')) & 'O' & $join([$index..40].('.'))
+  )};

@@ -12,6 +12,12 @@
   `Product Name`: {"Price": Price, "Qty": Quantity}
       };
       $sum(Account.Order.Product.(Price*Quantity));
+        /* JSONata is not known for its graphics support! */
+  $plot := function($x) {(
+    $floor := $string ~> $substringBefore(?, '.') ~> $number;
+    $index := $floor(($x + 1) * 20 + 0.5);
+    $join([0..$index].('.')) & 'O' & $join([$index..40].('.'))
+  )};
       $cos := function($x){ /* Derive cosine by expanding Maclaurin series */
           $x > $pi ? $cos($x - 2 * $pi) : $x < -$pi ? $cos($x + 2 * $pi) :
             $sum([0..12].($power(-1, $) * $power($x, 2*$) / $factorial(2*$)))
