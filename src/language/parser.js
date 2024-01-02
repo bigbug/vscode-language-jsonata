@@ -67,8 +67,10 @@ const parser = (() => {
     let position = 0;
     const { length } = path;
 
-    const create = function (type, value) {
-      const obj = { type, value, position };
+    const create = function (type, value, comments) {
+      const obj = {
+        type, value, position, comments,
+      };
       return obj;
     };
 
@@ -132,8 +134,10 @@ const parser = (() => {
       };
     };
 
-    var next = function (prefix) {
-      if (position >= length) return null;
+    var next = function (prefix, comments = []) {
+      if (position >= length) {
+        return null;
+      }
       let currentChar = path.charAt(position);
       // skip whitespace
       while (position < length && ' \t\n\r\v'.indexOf(currentChar) > -1) {
@@ -158,56 +162,56 @@ const parser = (() => {
             };
           }
         }
+        comments.push(comment);
         position += 2;
         currentChar = path.charAt(position);
-        return create('comment', comment);
-        return next(prefix); // need this to swallow any following whitespace
+        return next(prefix, comments); // need this to swallow any following whitespace
       }
       // test for regex
       if (prefix !== true && currentChar === '/') {
         position++;
-        return create('regex', scanRegex());
+        return create('regex', scanRegex(), comments);
       }
       // handle double-char operators
       if (currentChar === '.' && path.charAt(position + 1) === '.') {
         // double-dot .. range operator
         position += 2;
-        return create('operator', '..');
+        return create('operator', '..', comments);
       }
       if (currentChar === ':' && path.charAt(position + 1) === '=') {
         // := assignment
         position += 2;
-        return create('operator', ':=');
+        return create('operator', ':=', comments);
       }
       if (currentChar === '!' && path.charAt(position + 1) === '=') {
         // !=
         position += 2;
-        return create('operator', '!=');
+        return create('operator', '!=', comments);
       }
       if (currentChar === '>' && path.charAt(position + 1) === '=') {
         // >=
         position += 2;
-        return create('operator', '>=');
+        return create('operator', '>=', comments);
       }
       if (currentChar === '<' && path.charAt(position + 1) === '=') {
         // <=
         position += 2;
-        return create('operator', '<=');
+        return create('operator', '<=', comments);
       }
       if (currentChar === '*' && path.charAt(position + 1) === '*') {
         // **  descendant wildcard
         position += 2;
-        return create('operator', '**');
+        return create('operator', '**', comments);
       }
       if (currentChar === '~' && path.charAt(position + 1) === '>') {
         // ~>  chain function
         position += 2;
-        return create('operator', '~>');
+        return create('operator', '~>', comments);
       }
       // test for single char operators
       if (Object.prototype.hasOwnProperty.call(operators, currentChar)) {
         position++;
-        return create('operator', currentChar);
+        return create('operator', currentChar, comments);
       }
       // test for string literals
       if (currentChar === '"' || currentChar === "'") {
@@ -247,7 +251,7 @@ const parser = (() => {
             }
           } else if (currentChar === quoteType) {
             position++;
-            return create('string', qstr);
+            return create('string', qstr, comments);
           } else {
             qstr += currentChar;
           }
@@ -266,7 +270,7 @@ const parser = (() => {
         const num = parseFloat(match[0]);
         if (!isNaN(num) && isFinite(num)) {
           position += match[0].length;
-          return create('number', num);
+          return create('number', num, comments);
         }
         throw {
           code: 'S0102',
@@ -284,7 +288,7 @@ const parser = (() => {
         if (end !== -1) {
           name = path.substring(position, end);
           position = end + 1;
-          return create('name', name);
+          return create('name', name, comments);
         }
         position = length;
         throw {
@@ -303,7 +307,7 @@ const parser = (() => {
             // variable reference
             name = path.substring(position + 1, i);
             position = i;
-            return create('variable', name);
+            return create('variable', name, comments);
           }
           name = path.substring(position, i);
           position = i;
@@ -311,19 +315,22 @@ const parser = (() => {
             case 'or':
             case 'in':
             case 'and':
-              return create('operator', name);
+              return create('operator', name, comments);
             case 'true':
-              return create('value', true);
+              return create('value', true, comments);
             case 'false':
-              return create('value', false);
+              return create('value', false, comments);
             case 'null':
-              return create('value', null);
+              return create('value', null, comments);
             default:
               if (position === length && name === '') {
+                if (comments.length > 0) {
+                  return create('comment', undefined, comments);
+                }
                 // whitespace at end of input
                 return null;
               }
-              return create('name', name);
+              return create('name', name, comments);
           }
         } else {
           i++;
@@ -433,7 +440,7 @@ const parser = (() => {
         return node;
       }
       const { value } = next_token;
-      let { type } = next_token;
+      let { type, comments } = next_token;
       let symbol;
       switch (type) {
         case 'name':
@@ -478,6 +485,7 @@ const parser = (() => {
       node.value = value;
       node.type = type;
       node.position = next_token.position;
+      node.comments = comments;
       return node;
     };
 
@@ -1025,6 +1033,12 @@ const parser = (() => {
               } else {
                 result = { type: 'path', steps: [lstep] };
               }
+
+              if (lstep.comments && lstep.comments.length > 0) {
+                result.comments = lstep.comments;
+                delete lstep.comments;
+              }
+
               if (lstep.type === 'parent') {
                 result.seekingParent = [lstep.slot];
               }
@@ -1365,6 +1379,9 @@ const parser = (() => {
           err.stack = (new Error()).stack;
           throw err;
       }
+      if (expr.commentsAfter) {
+        result.commentsAfter = expr.commentsAfter;
+      }
       if (expr.keepArray) {
         result.keepArray = true;
       }
@@ -1376,6 +1393,10 @@ const parser = (() => {
     advance();
     // parse the tokens
     let expr = expression(0);
+    if (node.id === '/*') {
+      expr.commentsAfter = node.comments;
+      advance();
+    }
     if (node.id !== '(end)') {
       const err = {
         code: 'S0201',
@@ -1384,6 +1405,7 @@ const parser = (() => {
       };
       handleError(err);
     }
+    console.log(expr);
     expr = processAST(expr);
 
     if (expr.type === 'parent' || typeof expr.seekingParent !== 'undefined') {

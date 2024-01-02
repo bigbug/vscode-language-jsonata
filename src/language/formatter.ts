@@ -32,8 +32,13 @@ class Formatter {
   }
 
   private evaluate(obj: jsonata.ExprNode) {
-    // this.rest(obj);
-    // return;
+    // @ts-ignore
+    if (obj.comments && obj.comments.length > 0) {
+      // @ts-ignore
+      (obj.comments as string[]).forEach((comment) => {
+        this.p(`/*${comment}*/\n`);
+      });
+    }
     if (obj.type === 'unary' && obj.value === '{') {
       this.evaluteObj(obj);
     } else if (obj.type === 'unary' && obj.value === '[') {
@@ -76,6 +81,14 @@ class Formatter {
       this.evaluateComment(obj);
     } else {
       this.rest(obj);
+    }
+    // @ts-ignore
+    if (obj.commentsAfter && obj.commentsAfter.length > 0) {
+      this.p('\n\n');
+      // @ts-ignore
+      (obj.commentsAfter as string[]).forEach((comment) => {
+        this.p(`/*${comment}*/\n`);
+      });
     }
   }
 
