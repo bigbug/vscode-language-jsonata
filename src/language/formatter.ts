@@ -79,6 +79,8 @@ class Formatter {
       this.evaluateFilter(obj);
     } else if (obj.type === 'comment') {
       this.evaluateComment(obj);
+    } else if (obj.type === 'transform') {
+      this.evaluateTransform(obj);
     } else if (obj.type === 'operator') {
       this.p(obj.value);
     } else {
@@ -324,6 +326,22 @@ class Formatter {
     this.p(`/*${obj.value}*/\n`);
     // @ts-ignore
     this.evaluate(obj.expression);
+  }
+
+  private evaluateTransform(obj: jsonata.ExprNode) {
+    this.p('| ');
+    // @ts-ignore
+    this.evaluate(obj.pattern);
+    this.p(' | ');
+    // @ts-ignore
+    this.evaluate(obj.update);
+    // @ts-ignore
+    if (obj.delete) {
+      this.p(', ');
+      // @ts-ignore
+      this.evaluate(obj.delete);
+    }
+    this.p(' |');
   }
 
   public code() {
