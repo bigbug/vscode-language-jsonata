@@ -71,6 +71,9 @@ const parser = (() => {
       const obj = {
         type, value, position, comments,
       };
+      if (comments.length === 0) {
+        delete obj.comments;
+      }
       return obj;
     };
 

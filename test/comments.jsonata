@@ -1,5 +1,5 @@
 /* blub */
-$.ghi
+$.ghi[name = "filter"]
 
 /* abc */
 /* def */
