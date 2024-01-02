@@ -1405,7 +1405,6 @@ const parser = (() => {
       };
       handleError(err);
     }
-    console.log(expr);
     expr = processAST(expr);
 
     if (expr.type === 'parent' || typeof expr.seekingParent !== 'undefined') {

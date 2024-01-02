@@ -325,7 +325,6 @@ export default class JSONataDocumentFormatter implements DocumentFormattingEditP
     try {
       const code = document.getText();
       const formatted = new Formatter(code).code();
-      console.log(formatted);
 
       const edit: TextEdit[] = [];
       edit.push(new TextEdit(
