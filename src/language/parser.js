@@ -492,6 +492,15 @@ const parser = (() => {
       return node;
     };
 
+    const advanceWithComments = (obj, id, infix) => {
+      if (node.id === '/*') {
+        // eslint-disable-next-line no-param-reassign
+        obj.commentsAfter = node.comments;
+        advance();
+      }
+      return advance(id, infix);
+    };
+
     // Pratt's algorithm
     const expression = function (rbp) {
       let left;
@@ -1382,8 +1391,13 @@ const parser = (() => {
           err.stack = (new Error()).stack;
           throw err;
       }
+      if (!result.comments && expr.comments) {
+        result.comments = expr.comments;
+        delete expr.comments;
+      }
       if (expr.commentsAfter) {
         result.commentsAfter = expr.commentsAfter;
+        delete expr.commentsAfter;
       }
       if (expr.keepArray) {
         result.keepArray = true;
@@ -1396,10 +1410,8 @@ const parser = (() => {
     advance();
     // parse the tokens
     let expr = expression(0);
-    if (node.id === '/*') {
-      expr.commentsAfter = node.comments;
-      advance();
-    }
+    advanceWithComments(expr);
+
     if (node.id !== '(end)') {
       const err = {
         code: 'S0201',
