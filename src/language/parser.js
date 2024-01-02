@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable vars-on-top */
 /* eslint-disable func-names */
 /* eslint-disable no-throw-literal */
@@ -442,8 +444,8 @@ const parser = (() => {
         node.position = source.length;
         return node;
       }
-      const { value } = next_token;
-      let { type, comments } = next_token;
+      const { value, comments } = next_token;
+      let { type } = next_token;
       let symbol;
       switch (type) {
         case 'name':
