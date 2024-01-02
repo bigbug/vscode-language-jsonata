@@ -287,11 +287,14 @@ class Formatter {
   private evaluateFilter(obj: jsonata.ExprNode) {
     this.p('[');
     // @ts-ignore
-    if (obj.expr.lhs && obj.expr.lhs.steps
+    if ((obj.expr.lhs && obj.expr.lhs.steps
       // @ts-ignore
       && obj.expr.lhs.steps.length > 0
       // @ts-ignore
-      && obj.expr.lhs.steps[0].comments) {
+      && obj.expr.lhs.steps[0].comments) || (
+    // @ts-ignore
+      obj.expr.lhs.comments && obj.expr.lhs.comments.length > 0
+    )) {
       this.i();
       this.p('\n');
       // @ts-ignore
