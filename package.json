@@ -4,7 +4,7 @@
   "description": "Language support for JSONata",
   "version": "1.0.0",
   "engines": {
-    "vscode": "^1.64.0"
+    "vscode": "^1.75.0"
   },
   "repository": {
     "url": "https://github.com/bigbug/vscode-language-jsonata"
@@ -18,12 +18,138 @@
     "Other"
   ],
   "activationEvents": [
-    "onNotebook:jsonata-book",
-    "onLanguage:jsonata"
+    "onNotebook:jsonata-book"
   ],
   "main": "./dist/extension.js",
   "browser": "./dist/extension.js",
   "contributes": {
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "vscode-language-jsonata.debug.runEditorContents",
+          "when": "resourceLangId == jsonata",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vscode-language-jsonata.debug.debugEditorContents",
+          "when": "resourceLangId == jsonata",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "vscode-language-jsonata.debug.debugEditorContents",
+          "when": "resourceLangId == jsonata"
+        },
+        {
+          "command": "vscode-language-jsonata.debug.runEditorContents",
+          "when": "resourceLangId == jsonata"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "vscode-language-jsonata.debug.debugEditorContents",
+        "title": "Debug File",
+        "category": "Jsonata Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "vscode-language-jsonata.debug.runEditorContents",
+        "title": "Run File",
+        "category": "Jsonata Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "markdown"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "jsonata",
+        "languages": [
+          "jsonata"
+        ],
+        "label": "Jsonata Debug",
+        "program": "./dist/debugAdapter.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after attach.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "jsonata",
+            "request": "launch",
+            "name": "Ask for file name",
+            "program": "${workspaceFolder}/${command:AskForProgramName}",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "JSonata Debug: Launch",
+            "description": "A new configuration for debugging a user selected JSONata file.",
+            "body": {
+              "type": "jsonata",
+              "request": "launch",
+              "name": "Ask for file name",
+              "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "stopOnEntry": true
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "extension.mock-debug.getProgramName"
+        }
+      }
+    ],
     "languages": [
       {
         "id": "jsonata",
@@ -65,10 +191,12 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/events": "^3.0.3",
     "@types/glob": "^7.1.4",
     "@types/jsonata": "^1.5.1",
     "@types/mocha": "^9.0.0",
     "@types/node": "14.x",
+    "@types/path-browserify": "^1.0.2",
     "@types/vscode": "^1.64.0",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
@@ -85,10 +213,17 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.178",
+    "@vscode/debugadapter": "^1.64.0",
+    "@vscode/debugprotocol": "^1.64.0",
+    "await-notify": "^1.0.1",
+    "events": "^3.3.0",
+    "fs": "^0.0.1-security",
     "json-stringify-safe": "^5.0.1",
     "jsonata": "^2.0.3",
     "lodash": "^4.17.21",
+    "net": "^1.0.2",
     "node-fetch": "^3.3.2",
+    "path-browserify": "^1.0.1",
     "vscode-uri": "^3.0.3",
     "xml2js": "^0.6.2"
   }

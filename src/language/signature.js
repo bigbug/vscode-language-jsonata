@@ -1,3 +1,13 @@
+/* eslint-disable consistent-return */
+/* eslint-disable no-throw-literal */
+/* eslint-disable max-len */
+/* eslint-disable default-case */
+/* eslint-disable func-names */
+/* eslint-disable no-var */
+/* eslint-disable no-plusplus */
+/* eslint-disable no-loop-func */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-shadow */
 /**
  * © Copyright IBM Corp. 2016, 2018 All Rights Reserved
  *   Project name: JSONata

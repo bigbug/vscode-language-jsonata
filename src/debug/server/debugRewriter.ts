@@ -2,6 +2,7 @@
 /* eslint-disable no-param-reassign */
 import jsonata = require('jsonata');
 import { isObject, isString } from 'lodash';
+import formatJsonata from '../../language/formatter';
 
 function makeid(length:number) {
   let result = '';
@@ -18,28 +19,36 @@ function makeid(length:number) {
 class DebugRewriter {
   public rewritten: jsonata.ExprNode;
 
-  private adapter = 'jsonataDebugAdapter';
+  public adapter = 'jsonataDebugAdapter';
 
   private adapterVariable= 'jsonataDebugAdapterVariable';
 
-  constructor(code: string) {
-    this.findAdapterNaming(code);
+  private code: string;
+
+  public expressionPositions: number[] = [];
+
+  private file: string;
+
+  constructor(file: string, code: string) {
+    this.code = code;
+    this.file = file;
+    this.findAdapterNaming();
     const obj = jsonata(code).ast();
     this.rewritten = this.block([
-      this.functionCall(this.adapter, 'entry', this.variable('')),
+      this.functionCall(this.adapter, 'entry', this.file, 0, this.variable('')),
       ...this.wrapExpression(obj),
-      this.functionCall(this.adapter, 'end', this.variable(this.adapterVariable)),
+      this.functionCall(this.adapter, 'end', this.file, 99999999999, this.variable(this.adapterVariable)),
     ]);
   }
 
-  private findAdapterNaming(code:string) {
+  private findAdapterNaming() {
     let ad = this.adapter;
     let tries = 0;
-    while (code.includes(ad) && tries < 20) {
+    while (this.code.includes(ad) && tries < 20) {
       ad = `${this.adapter}_${makeid(5)}`;
       tries += 1;
     }
-    if (code.includes(ad)) {
+    if (this.code.includes(ad)) {
       throw Error('Did not find untaken adapter within 20 tries!');
     }
     this.adapter = ad;
@@ -208,24 +217,25 @@ class DebugRewriter {
   wrapExpression(e: jsonata.ExprNode) {
     const position = e.position || -1;
     const binds = this.findBinds(e);
+    if (position >= 0) this.expressionPositions.push(position);
     return [
-      this.functionCall(this.adapter, 'exprBegin', position),
+      this.functionCall(this.adapter, 'exprBegin', this.file, position),
       this.bind(this.adapterVariable, this.rewrite(e)),
-      this.functionCall(this.adapter, 'exprEnd', position, this.variable(this.adapterVariable), ...binds),
+      this.functionCall(this.adapter, 'exprEnd', this.file, position, this.variable(this.adapterVariable), ...binds),
     ];
   }
 
   rewriteBlock(obj: jsonata.ExprNode) {
     if (!obj.expressions) return obj;
     const res = [
-      this.functionCall(this.adapter, 'blockBegin', obj.position || -1),
+      this.functionCall(this.adapter, 'blockBegin', this.file, obj.position || -1),
     ];
     // @ts-ignore
     obj.expressions.forEach((e) => {
       res.push(...this.wrapExpression(e));
     });
     res.push(
-      this.functionCall(this.adapter, 'blockEnd', obj.position || -1),
+      this.functionCall(this.adapter, 'blockEnd', this.file, obj.position || -1),
       this.variable(this.adapterVariable),
     );
     obj.expressions = res;
@@ -282,10 +292,10 @@ class DebugRewriter {
     obj.lhs = this.rewrite(obj.lhs);
     if (obj.value === '=') {
       obj.rhs = this.block([
-        this.functionCall(this.adapter, 'filterBegin', obj.position || -1),
+        this.functionCall(this.adapter, 'filterBegin', this.file, obj.position || -1),
         // @ts-ignore
         ...this.wrapExpression(obj.rhs),
-        this.functionCall(this.adapter, 'filterEnd', obj.position || -1, this.variable(this.adapterVariable)),
+        this.functionCall(this.adapter, 'filterEnd', this.file, obj.position || -1, this.variable(this.adapterVariable)),
         this.variable(this.adapterVariable),
       ]);
       return obj;
@@ -319,7 +329,11 @@ class DebugRewriter {
   }
 }
 
-export default function rewriteDebug(code: string) {
-  const obj = new DebugRewriter(code);
-  return obj.rewritten;
+export default function rewriteDebug(file: string, code: string) {
+  const obj = new DebugRewriter(file, code);
+  return {
+    code: formatJsonata(obj.rewritten),
+    adapter: obj.adapter,
+    expressions: obj.expressionPositions,
+  };
 }

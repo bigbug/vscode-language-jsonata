@@ -1,3 +1,13 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable block-scoped-var */
+/* eslint-disable no-var */
+/* eslint-disable no-plusplus */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable no-throw-literal */
+/* eslint-disable no-restricted-globals */
 /**
  * © Copyright IBM Corp. 2016, 2018 All Rights Reserved
  *   Project name: JSONata

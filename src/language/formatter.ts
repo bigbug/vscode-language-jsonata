@@ -1,11 +1,9 @@
 // eslint-disable-next-line max-classes-per-file
 import jsonata = require('jsonata');
-import {
-  DocumentFormattingEditProvider, Position, ProviderResult, Range, TextDocument, TextEdit, window,
-} from 'vscode';
+// @ts-ignore
+import { isString } from 'lodash';
 // @ts-ignore
 import parser = require('./parser');
-import populateMessage from './errors';
 
 class Formatter {
   private indent = 0;
@@ -14,21 +12,8 @@ class Formatter {
 
   private formattedCode: string = '';
 
-  constructor(code: string) {
-    const obj = parser(code);
+  constructor(obj: jsonata.ExprNode) {
     this.evaluate(obj);
-
-    if (this.strip(code) !== this.strip(this.formattedCode)) {
-      // window.showErrorMessage('Error on formatting! Input and output are different!');
-      // throw new Error('Error on formatting! Input and output are different!');
-    }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private strip(code: string) {
-    let res = code;
-    res = res.replace(/[ \s\t\n]/g, '');
-    return res;
   }
 
   private evaluate(obj: jsonata.ExprNode) {
@@ -352,6 +337,12 @@ class Formatter {
   }
 }
 
-export default function formatJsonata(code: string) {
-  return new Formatter(code).code();
+export default function formatJsonata(code: string|jsonata.ExprNode) {
+  let expr: jsonata.ExprNode;
+  if (isString(code)) {
+    expr = parser(code);
+  } else {
+    expr = code;
+  }
+  return new Formatter(expr).code();
 }

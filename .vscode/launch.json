@@ -19,6 +19,19 @@
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
+      "name": "Server",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/src/debug/server/debugAdapter.ts",
+      "args": [
+        "--server=4711"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/*.js"
+      ]
+    },
+    {
       "name": "Extension Tests",
       "type": "extensionHost",
       "request": "launch",
@@ -30,6 +43,15 @@
         "${workspaceFolder}/out/test/**/*.js"
       ],
       "preLaunchTask": "npm: test-watch"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Extension + Server",
+      "configurations": [
+        "Run Extension",
+        "Server"
+      ]
     }
   ]
 }
