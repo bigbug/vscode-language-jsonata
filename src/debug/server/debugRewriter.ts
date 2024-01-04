@@ -3,6 +3,18 @@
 import jsonata = require('jsonata');
 import { isObject, isString } from 'lodash';
 
+function makeid(length:number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
 class DebugRewriter {
   public rewritten: jsonata.ExprNode;
 
@@ -11,12 +23,27 @@ class DebugRewriter {
   private adapterVariable= 'jsonataDebugAdapterVariable';
 
   constructor(code: string) {
+    this.findAdapterNaming(code);
     const obj = jsonata(code).ast();
     this.rewritten = this.block([
       this.functionCall(this.adapter, 'entry', this.variable('')),
       ...this.wrapExpression(obj),
       this.functionCall(this.adapter, 'end', this.variable(this.adapterVariable)),
     ]);
+  }
+
+  private findAdapterNaming(code:string) {
+    let ad = this.adapter;
+    let tries = 0;
+    while (code.includes(ad) && tries < 20) {
+      ad = `${this.adapter}_${makeid(5)}`;
+      tries += 1;
+    }
+    if (code.includes(ad)) {
+      throw Error('Did not find untaken adapter within 20 tries!');
+    }
+    this.adapter = ad;
+    this.adapterVariable = `${ad}Var`;
   }
 
   private bind(name: string, expr: jsonata.ExprNode) {
