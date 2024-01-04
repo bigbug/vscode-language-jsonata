@@ -40,7 +40,7 @@ class Formatter {
       });
     }
     if (obj.type === 'unary' && obj.value === '{') {
-      this.evaluteObj(obj);
+      this.evaluateObj(obj);
     } else if (obj.type === 'unary' && obj.value === '[') {
       this.evaluateArray(obj);
     } else if (obj.type === 'unary' && obj.value === '-') {
@@ -112,7 +112,7 @@ class Formatter {
     this.indent -= this.indentStep;
   }
 
-  private evaluteObj(obj: jsonata.ExprNode) {
+  private evaluateObj(obj: jsonata.ExprNode) {
     this.p('{');
     this.i();
     obj.lhs?.forEach((e, i, a) => {
@@ -280,7 +280,7 @@ class Formatter {
     // @ts-ignore
     if (obj.group) {
       // @ts-ignore
-      this.evaluteObj(obj.group);
+      this.evaluateObj(obj.group);
     }
   }
 
@@ -352,38 +352,6 @@ class Formatter {
   }
 }
 
-export default class JSONataDocumentFormatter implements DocumentFormattingEditProvider {
-  // eslint-disable-next-line class-methods-use-this
-  provideDocumentFormattingEdits(
-    document: TextDocument,
-    // options: FormattingOptions,
-    // token: CancellationToken,
-  ): ProviderResult<TextEdit[]> {
-    try {
-      const code = document.getText();
-      const formatted = new Formatter(code).code();
-
-      const edit: TextEdit[] = [];
-      edit.push(new TextEdit(
-        new Range(
-          new Position(0, 0),
-          new Position(document.lineCount - 1, document.lineAt(document.lineCount - 1).text.length),
-        ),
-        formatted,
-      ));
-      return edit;
-    } catch (e: any) {
-      if (e.code) {
-        const err = populateMessage(e);
-        // @ts-ignore
-        window.showErrorMessage(`${err.code}: ${err.message}`);
-        return undefined;
-      }
-      // (parser error) don't bubble up as a pot. unhandled thenable promise;
-      // explicitly return "no change" instead.
-      // show error message
-      window.showErrorMessage(`${e.name} (@${e.location.start.line}:${e.location.start.column}): ${e.message}`);
-      return undefined;
-    }
-  }
+export default function formatJsonata(code: string) {
+  return new Formatter(code).code();
 }
