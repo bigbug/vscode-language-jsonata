@@ -13,6 +13,7 @@ import { basename } from 'path-browserify';
 // @ts-ignore
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Subject } from 'await-notify';
+import { isFunction } from 'lodash';
 import {
   MockRuntime, IRuntimeBreakpoint, FileAccessor,
 } from './debugRuntime';
@@ -443,7 +444,7 @@ export default class JsonataDebugSession extends LoggingDebugSession {
       // 4 options for 'totalFrames':
       // omit totalFrames property:
       // VS Code has to probe/guess. Should result in a max. of two requests
-      totalFrames: 1, // stk.count is the correct size, should result
+      totalFrames: scopes.length, // stk.count is the correct size, should result
       // in a max. of two requests
       // totalFrames: 1000000    // not the correct size, should result in a max. of two requests
       // totalFrames: endFrame + 20  // dynamically increases the size with
@@ -514,6 +515,10 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   } */
 
+  private toVariable(name: string, value: unknown) {
+    return new Variable(name, isFunction(value) ? 'f()' : JSON.stringify(value));
+  }
+
   protected async variablesRequest(
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments,
@@ -540,12 +545,13 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     } */
 
     const scope = this._runtime.getScopes()[args.variablesReference - 1];
+    console.log(scope);
 
     const variables = Object.entries(
       scope.variables,
-    ).map(([n, v]) => new Variable(n, JSON.stringify(v.value)));
+    ).map(([n, v]) => this.toVariable(n, v.value));
 
-    if (scope.data || args.variablesReference === 1) {
+    if (scope.data) {
       variables.push(new Variable('$', JSON.stringify(scope.data) || 'undefined'));
     }
 
@@ -645,11 +651,26 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  /* protected async evaluateRequest(
+  protected async evaluateRequest(
     response: DebugProtocol.EvaluateResponse,
     args: DebugProtocol.EvaluateArguments,
   ): Promise<void> {
-    let reply: string | undefined;
+    try {
+      const val = this._runtime.evaluateExpression(args.expression);
+      const v = this.toVariable('', val);
+      response.body = {
+        result: v.value,
+        variablesReference: v.variablesReference,
+      };
+    } catch (e) {
+      response.body = {
+        result: e instanceof Error ? e.message : 'Unknown error',
+        variablesReference: 0,
+      };
+    }
+
+    this.sendResponse(response);
+    /* let reply: string | undefined;
     let rv: RuntimeVariable | undefined;
 
     switch (args.context) {
@@ -717,8 +738,8 @@ export default class JsonataDebugSession extends LoggingDebugSession {
       };
     }
 
-    this.sendResponse(response);
-  } */
+    this.sendResponse(response); */
+  }
 
   /* protected setExpressionRequest(
     response: DebugProtocol.SetExpressionResponse,

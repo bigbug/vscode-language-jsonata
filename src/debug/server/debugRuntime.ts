@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events';
 import { TextDecoder } from 'util';
+import { get } from 'lodash';
 import rewriteDebug from './debugRewriter';
 import JSONataKernel from '../../kernel/kernel';
 
@@ -185,6 +186,25 @@ export class MockRuntime extends EventEmitter {
     });
   }
 
+  public evaluateExpression(expr: string): unknown {
+    const v = expr.split('.', 2)[0].split('[', 2)[0];
+    for (let i = this.scopes.length - 1; i >= 0; i -= 1) {
+      const scope = this.scopes[i];
+
+      // eslint-disable-next-line no-continue
+      if (!(v in scope.variables)) continue;
+
+      const obj: {[n: string]: unknown} = {};
+      obj[v] = scope.variables[v].value;
+      const res = get(obj, expr, 'Path not found in variable');
+      if (res === 'Path not found in variable') {
+        throw Error('path not found');
+      }
+      return res;
+    }
+    throw Error('not found');
+  }
+
   private setVariableInCurrentScope(name: string, value: unknown) {
     this.getCurrentScope().variables[`${name}`] = {
       value,
@@ -230,13 +250,44 @@ export class MockRuntime extends EventEmitter {
     } else if (event === 'blockEnd') {
       const sc = this.scopes.pop();
       this.setLastResult(sc?.lastResult);
+      if (!this.stopOnStep) {
+        return Promise.resolve();
+      }
+      this.sendEvent('stopOnStep');
+    } else if (event === 'filterBegin') {
+      this.pushScope('Filter', undefined, file, position);
       return Promise.resolve();
+    } else if (event === 'filterEnd') {
+      // eslint-disable-next-line no-unused-vars
+      const scope = this.scopes.pop();
+      return Promise.resolve();
+    } else if (event === 'functionBegin') {
+      this.pushScope('Function', undefined, file, position);
+      this.setFunctionParameters(...args);
+      return Promise.resolve();
+    } else if (event === 'functionEnd') {
+      const sc = this.scopes.pop();
+      this.setLastResult(sc?.lastResult);
+      if (!this.stopOnStep) {
+        return Promise.resolve();
+      }
+      this.sendEvent('stopOnStep');
     } else if (event === 'end') {
       return Promise.resolve();
     }
     return new Promise((resolve) => {
       this.resolveCurrentBreak = resolve;
     });
+  }
+
+  private setFunctionParameters(...args: unknown[]) {
+    const half = Math.ceil(args.length / 2);
+    const names = args.slice(0, half);
+    const values = args.slice(half, args.length);
+
+    for (let i = 0; i < names.length; i++) {
+      this.setVariableInCurrentScope(names[i] as string, values[i]);
+    }
   }
 
   private getPosition(file: string, position: number): IRuntimePosition {
@@ -280,6 +331,7 @@ export class MockRuntime extends EventEmitter {
       throw Error('Debug source not available!');
     }
 
+    console.log(this.debugSource);
     this.kernel.registerFunction(this.adapter, this.kernelEventHandler.bind(this));
 
     this.stopOnEntry = false;

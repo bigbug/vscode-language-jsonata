@@ -19,9 +19,9 @@ function makeid(length:number) {
 class DebugRewriter {
   public rewritten: jsonata.ExprNode;
 
-  public adapter = 'jsonataDebugAdapter';
+  public adapter = 'jda';
 
-  private adapterVariable= 'jsonataDebugAdapterVariable';
+  private adapterVariable= 'jdaVar';
 
   private code: string;
 
@@ -248,8 +248,15 @@ class DebugRewriter {
   }
 
   rewriteLambda(obj: jsonata.ExprNode) {
+    const vars = obj.arguments?.map((i) => i.value) || [];
     // @ts-ignore
-    obj.body = this.rewrite(obj.body);
+    obj.body = this.block([
+      this.functionCall(this.adapter, 'functionBegin', this.file, obj.position || -1, ...vars, ...vars.map((i) => this.variable(i))),
+      // @ts-ignore
+      this.bind(this.adapterVariable, ...this.wrapExpression(obj.body)),
+      this.functionCall(this.adapter, 'functionEnd', this.file, obj.position || -1, this.variable(this.adapterVariable)),
+      this.variable(this.adapterVariable),
+    ]);
     // @ts-ignore
     if (Object.keys(obj).includes('thunk') && obj.thunk) {
       return obj;
