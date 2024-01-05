@@ -245,7 +245,7 @@ export class MockRuntime extends EventEmitter {
       binds.forEach((bind) => this.setVariableInCurrentScope(bind, result));
       return Promise.resolve();
     } else if (event === 'blockBegin') {
-      this.pushScope('Block', undefined, file, position);
+      this.pushScope('Block', args[0], file, position);
       return Promise.resolve();
     } else if (event === 'blockEnd') {
       const sc = this.scopes.pop();

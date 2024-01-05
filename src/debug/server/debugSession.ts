@@ -516,6 +516,10 @@ export default class JsonataDebugSession extends LoggingDebugSession {
   } */
 
   private toVariable(name: string, value: unknown) {
+    if (value === undefined) {
+      return new Variable(name, 'undefined');
+    }
+
     return new Variable(name, isFunction(value) ? 'f()' : JSON.stringify(value));
   }
 
@@ -551,9 +555,8 @@ export default class JsonataDebugSession extends LoggingDebugSession {
       scope.variables,
     ).map(([n, v]) => this.toVariable(n, v.value));
 
-    if (scope.data) {
-      variables.push(new Variable('$', JSON.stringify(scope.data) || 'undefined'));
-    }
+    variables.push(this.toVariable('$', scope.data));
+    variables.push(this.toVariable('__lastResult__', scope.lastResult));
 
     response.body = {
       variables,

@@ -228,7 +228,7 @@ class DebugRewriter {
   rewriteBlock(obj: jsonata.ExprNode) {
     if (!obj.expressions) return obj;
     const res = [
-      this.functionCall(this.adapter, 'blockBegin', this.file, obj.position || -1),
+      this.functionCall(this.adapter, 'blockBegin', this.file, obj.position || -1, this.variable('')),
     ];
     // @ts-ignore
     obj.expressions.forEach((e) => {
@@ -253,7 +253,7 @@ class DebugRewriter {
     obj.body = this.block([
       this.functionCall(this.adapter, 'functionBegin', this.file, obj.position || -1, ...vars, ...vars.map((i) => this.variable(i))),
       // @ts-ignore
-      this.bind(this.adapterVariable, ...this.wrapExpression(obj.body)),
+      ...this.wrapExpression(obj.body),
       this.functionCall(this.adapter, 'functionEnd', this.file, obj.position || -1, this.variable(this.adapterVariable)),
       this.variable(this.adapterVariable),
     ]);
