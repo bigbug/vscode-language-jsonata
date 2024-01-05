@@ -5,7 +5,7 @@ import {
   Logger, logger,
   LoggingDebugSession,
   InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent,
-  Thread, Source, Breakpoint, Scope, StackFrame, Variable,
+  Thread, Source, Breakpoint, Scope, StackFrame, Variable, Handles,
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -13,9 +13,9 @@ import { basename } from 'path-browserify';
 // @ts-ignore
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Subject } from 'await-notify';
-import { isFunction } from 'lodash';
+import { isArray, isFunction, isObject } from 'lodash';
 import {
-  MockRuntime, IRuntimeBreakpoint, FileAccessor,
+  MockRuntime, IRuntimeBreakpoint, FileAccessor, IRuntimeScope,
 } from './debugRuntime';
 
 /**
@@ -47,6 +47,8 @@ export default class JsonataDebugSession extends LoggingDebugSession {
   private _runtime: MockRuntime;
 
   private _configurationDone = new Subject();
+
+  private _handles = new Handles<IRuntimeScope | any | []>();
 
   private _cancellationTokens = new Map<number, boolean>();
 
@@ -164,8 +166,8 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     response.body.supportsStepInTargetsRequest = true;
 
     // the adapter defines two exceptions filters, one with support for conditions.
-    response.body.supportsExceptionFilterOptions = true;
-    response.body.exceptionBreakpointFilters = [
+    response.body.supportsExceptionFilterOptions = false;
+    /* response.body.exceptionBreakpointFilters = [
       {
         filter: 'namedException',
         label: 'Named Exception',
@@ -181,10 +183,10 @@ export default class JsonataDebugSession extends LoggingDebugSession {
         default: true,
         supportsCondition: false,
       },
-    ];
+    ]; */
 
     // make VS Code send exceptionInfo request
-    response.body.supportsExceptionInfoRequest = true;
+    response.body.supportsExceptionInfoRequest = false;
 
     // make VS Code send setVariable request
     response.body.supportsSetVariable = false;
@@ -461,7 +463,7 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     console.log('session:getScopes');
     response.body = {
       scopes: this._runtime.getScopes()
-        .map((scope, idx) => new Scope(scope.name, idx + 1, false))
+        .map((scope) => new Scope(scope.name, this._handles.create(scope.variables), false))
         .reverse()
       /* [
         new Scope('Locals', this._variableHandles.create('locals'), false),
@@ -519,8 +521,20 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     if (value === undefined) {
       return new Variable(name, 'undefined');
     }
+    if (isFunction(value)) {
+      return new Variable(name, 'f()');
+    }
 
-    return new Variable(name, isFunction(value) ? 'f()' : JSON.stringify(value));
+    if (isObject(value)) {
+      const ref = this._handles.create(value);
+      return new Variable(name, JSON.stringify(value), ref);
+    }
+    if (isArray(value)) {
+      const ref = this._handles.create(value);
+      return new Variable(name, JSON.stringify(value), ref);
+    }
+
+    return new Variable(name, JSON.stringify(value));
   }
 
   protected async variablesRequest(
@@ -548,15 +562,19 @@ export default class JsonataDebugSession extends LoggingDebugSession {
       vs = v.value;
     } */
 
-    const scope = this._runtime.getScopes()[args.variablesReference - 1];
-    console.log(scope);
+    // const scope = this._runtime.getScopes()[args.variablesReference - 1];
+    // console.log(scope);
 
-    const variables = Object.entries(
-      scope.variables,
-    ).map(([n, v]) => this.toVariable(n, v.value));
+    // const variables = Object.entries(
+    //   scope.variables,
+    // ).map(([n, v]) => this.toVariable(n, v));
 
-    variables.push(this.toVariable('$', scope.data));
-    variables.push(this.toVariable('__lastResult__', scope.lastResult));
+    // variables.push(this.toVariable('$', scope.data));
+    // variables.push(this.toVariable('__lastResult__', scope.lastResult));
+
+    const handle = this._handles.get(args.variablesReference);
+
+    const variables = Object.entries(handle).map(([n, v]) => this.toVariable(n, v));
 
     response.body = {
       variables,

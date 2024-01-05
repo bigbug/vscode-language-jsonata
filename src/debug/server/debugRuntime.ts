@@ -46,21 +46,16 @@ export interface IRuntimeBreakpoint {
   line?: number;
 } */
 
-interface IRuntimeVariable {
-  value: unknown,
-  type: string,
-}
-
 interface IRuntimePosition {
   position: number,
   line: number,
   col: number,
 }
 
-interface IRuntimeScope {
+export interface IRuntimeScope {
   name: string,
   lastResult: unknown,
-  variables: {[name: string]: IRuntimeVariable}
+  variables: {[name: string]: unknown}
   data: unknown,
   file: string,
   currentPosition: IRuntimePosition,
@@ -195,7 +190,7 @@ export class MockRuntime extends EventEmitter {
       if (!(v in scope.variables)) continue;
 
       const obj: {[n: string]: unknown} = {};
-      obj[v] = scope.variables[v].value;
+      obj[v] = scope.variables[v];
       const res = get(obj, expr, 'Path not found in variable');
       if (res === 'Path not found in variable') {
         throw Error('path not found');
@@ -206,10 +201,7 @@ export class MockRuntime extends EventEmitter {
   }
 
   private setVariableInCurrentScope(name: string, value: unknown) {
-    this.getCurrentScope().variables[`${name}`] = {
-      value,
-      type: 'unknown',
-    };
+    this.getCurrentScope().variables[`${name}`] = value;
   }
 
   private setLastResult(value: unknown) {

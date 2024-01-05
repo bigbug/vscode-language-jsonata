@@ -66,6 +66,8 @@ class Formatter {
       this.evaluateComment(obj);
     } else if (obj.type === 'transform') {
       this.evaluateTransform(obj);
+    } else if (obj.type === 'value') {
+      this.evaluateValue(obj);
     } else if (obj.type === 'operator') {
       this.p(obj.value);
     } else {
@@ -95,6 +97,14 @@ class Formatter {
 
   private d() {
     this.indent -= this.indentStep;
+  }
+
+  private evaluateValue(obj: jsonata.ExprNode) {
+    if (obj.value) {
+      this.p('true');
+    } else {
+      this.p('false');
+    }
   }
 
   private evaluateObj(obj: jsonata.ExprNode) {
