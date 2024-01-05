@@ -273,7 +273,10 @@ export class MockRuntime extends EventEmitter {
       }
       this.sendEvent('stopOnStep');
     } else if (event === 'end') {
-      return Promise.resolve();
+      if (!this.stopOnStep) {
+        return Promise.resolve();
+      }
+      this.sendEvent('stopOnStep');
     }
     return new Promise((resolve) => {
       this.resolveCurrentBreak = resolve;
