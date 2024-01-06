@@ -463,7 +463,11 @@ export default class JsonataDebugSession extends LoggingDebugSession {
     console.log('session:getScopes');
     response.body = {
       scopes: this._runtime.getScopes()
-        .map((scope) => new Scope(scope.name, this._handles.create(scope.variables), false))
+        .map((scope) => new Scope(scope.name, this._handles.create({
+          ...scope.variables,
+          '*$': scope.data,
+          '*lastResult': scope.lastResult,
+        }), false))
         .reverse()
       /* [
         new Scope('Locals', this._variableHandles.create('locals'), false),
